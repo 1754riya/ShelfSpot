@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { PlusCircle, Loader2 } from 'lucide-react';
+import { PlusCircle, Loader2, Tag, DollarSign, Text, Image as ImageIcon } from 'lucide-react'; // Added Tag, DollarSign, Text, ImageIcon
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -54,14 +54,6 @@ export function ProductSubmissionForm({ onAddProduct }: ProductSubmissionFormPro
     
     if (success) {
       form.reset(); 
-      // The toast is already handled in the page.tsx for success/failure.
-      // No need to call it here again if onAddProduct returns a boolean
-      // that the parent component uses for its own toast.
-      // If you want specific toast here:
-      // toast({
-      //   title: 'Product Submitted!',
-      //   description: `${data.name} has been added.`,
-      // });
     }
     setIsSubmitting(false);
   }
@@ -83,7 +75,10 @@ export function ProductSubmissionForm({ onAddProduct }: ProductSubmissionFormPro
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-lg font-semibold text-foreground/85 hover:text-primary transition-colors duration-200">Product Name</FormLabel>
+                  <FormLabel className="text-lg font-semibold text-foreground/85 hover:text-primary transition-colors duration-200 flex items-center">
+                    <Tag className="mr-2 h-5 w-5 text-primary/80 group-hover:text-primary transition-colors duration-200" /> 
+                    Product Name
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., Ergonomic Office Chair" {...field} className="text-base py-3 px-4 rounded-lg shadow-sm border-border/70 focus:border-primary transition-colors hover:border-primary/70"/>
                   </FormControl>
@@ -96,7 +91,10 @@ export function ProductSubmissionForm({ onAddProduct }: ProductSubmissionFormPro
               name="price"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-lg font-semibold text-foreground/85 hover:text-primary transition-colors duration-200">Price (USD)</FormLabel>
+                  <FormLabel className="text-lg font-semibold text-foreground/85 hover:text-primary transition-colors duration-200 flex items-center">
+                    <DollarSign className="mr-2 h-5 w-5 text-primary/80 group-hover:text-primary transition-colors duration-200" />
+                    Price (USD)
+                  </FormLabel>
                   <FormControl>
                     <Input type="number" placeholder="e.g., 299.99" {...field} step="0.01" 
                      onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
@@ -113,7 +111,10 @@ export function ProductSubmissionForm({ onAddProduct }: ProductSubmissionFormPro
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-lg font-semibold text-foreground/85 hover:text-primary transition-colors duration-200">Description</FormLabel>
+                  <FormLabel className="text-lg font-semibold text-foreground/85 hover:text-primary transition-colors duration-200 flex items-center">
+                    <Text className="mr-2 h-5 w-5 text-primary/80 group-hover:text-primary transition-colors duration-200" />
+                    Description
+                  </FormLabel>
                   <FormControl>
                     <Textarea placeholder="Describe your product in detail..." {...field} rows={6} className="text-base py-3 px-4 rounded-lg shadow-sm min-h-[120px] border-border/70 focus:border-primary transition-colors hover:border-primary/70"/>
                   </FormControl>
@@ -126,7 +127,10 @@ export function ProductSubmissionForm({ onAddProduct }: ProductSubmissionFormPro
               name="imageUrl"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-lg font-semibold text-foreground/85 hover:text-primary transition-colors duration-200">Image URL (Optional)</FormLabel>
+                  <FormLabel className="text-lg font-semibold text-foreground/85 hover:text-primary transition-colors duration-200 flex items-center">
+                    <ImageIcon className="mr-2 h-5 w-5 text-primary/80 group-hover:text-primary transition-colors duration-200" />
+                    Image URL (Optional)
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="https://example.com/your-product-image.jpg" {...field} className="text-base py-3 px-4 rounded-lg shadow-sm border-border/70 focus:border-primary transition-colors hover:border-primary/70"/>
                   </FormControl>
@@ -149,4 +153,3 @@ export function ProductSubmissionForm({ onAddProduct }: ProductSubmissionFormPro
     </Card>
   );
 }
-
