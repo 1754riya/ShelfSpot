@@ -6,7 +6,7 @@ import type { Product } from '@/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProductSubmissionForm } from '@/components/app/product-submission-form';
 import { ProductList } from '@/components/app/product-list';
-import { PackagePlus, List, Loader2, AlertTriangle } from 'lucide-react';
+import { PackagePlus, List, Loader2, AlertTriangle, LayoutDashboard } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -20,10 +20,10 @@ export default function HomePage() {
   const { toast } = useToast();
 
   const parseProductPrice = (product: any): Product => {
+    const price = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
     return {
       ...product,
-      price: typeof product.price === 'string' ? parseFloat(product.price) : product.price,
-      // Ensure dataAiHint is correctly named if it comes as "data_ai_hint" from backend
+      price: typeof price === 'number' && !isNaN(price) ? price : 0, // Ensure price is a valid number, default to 0 if not
       dataAiHint: product.dataAiHint || product.data_ai_hint 
     };
   };
@@ -43,8 +43,8 @@ export default function HomePage() {
         throw new Error(`Failed to fetch products: ${response.status} ${response.statusText}. Server responded with: ${errorBody}`);
       }
       const data: any[] = await response.json();
-      const productsWithNumericPrice = data.map(parseProductPrice);
-      setProducts(productsWithNumericPrice);
+      const productsWithParsedPrice = data.map(parseProductPrice);
+      setProducts(productsWithParsedPrice);
     } catch (err) {
       let detailedMessage = "An unknown error occurred while fetching products.";
       if (err instanceof Error) {
@@ -71,14 +71,13 @@ export default function HomePage() {
     fetchProducts();
   }, [fetchProducts]);
 
-  const handleAddProduct = async (productData: Omit<Product, 'id'>) => { // dataAiHint is now part of ProductData Omit
+  const handleAddProduct = async (productData: Omit<Product, 'id'>) => { 
     try {
-      // The backend expects "data-ai-hint", so we ensure it's passed that way
       const payload = {
         ...productData,
         "data-ai-hint": productData.dataAiHint 
       };
-      delete (payload as any).dataAiHint; // remove the camelCase version if it exists on payload
+      delete (payload as any).dataAiHint; 
 
       const response = await fetch(`${API_URL}/products`, {
         method: 'POST',
@@ -130,36 +129,43 @@ export default function HomePage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8 px-4 flex flex-col justify-center items-center min-h-[calc(100vh-10rem)]"> {/* Adjusted min-height */}
-        <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-        <p className="text-lg text-muted-foreground">Loading products...</p>
+      <div className="container mx-auto py-10 px-4 flex flex-col justify-center items-center min-h-[calc(100vh-12rem)]"> {/* Adjusted min-height and padding */}
+        <Loader2 className="h-16 w-16 animate-spin text-primary mb-6" />
+        <p className="text-xl text-muted-foreground">Loading Products...</p>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-4 sm:py-8 px-2 sm:px-4">
+    <div className="container mx-auto py-8 sm:py-12 px-4"> {/* Adjusted padding */}
+      <div className="flex items-center justify-center sm:justify-start mb-10">
+        <LayoutDashboard className="h-10 w-10 mr-3 text-primary" />
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
+          Product Dashboard
+        </h1>
+      </div>
+
       {error && (
-        <Alert variant="destructive" className="mb-6 shadow-md rounded-lg">
-          <AlertTriangle className="h-5 w-5" />
-          <AlertTitle className="font-semibold">Application Error</AlertTitle>
-          <AlertDescription className="text-sm">{error}
-          <p className="mt-2 text-xs">
+        <Alert variant="destructive" className="mb-8 shadow-xl rounded-xl p-6"> {/* Enhanced shadow and padding */}
+          <AlertTriangle className="h-6 w-6" /> {/* Slightly larger icon */}
+          <AlertTitle className="font-bold text-lg">Application Error</AlertTitle> {/* Bolder and larger title */}
+          <AlertDescription className="text-base mt-1">{error} {/* Slightly larger description */}
+          <p className="mt-3 text-sm text-muted-foreground/90"> {/* Adjusted styling for readability */}
               Please ensure your backend server is running (<code>npm run server:dev</code>) and connected to the PostgreSQL database.
-              Check the <a href="https://github.com/GoogleCloudPlatform/idx-e2e-shelfspot/blob/main/README.md#troubleshooting-error-fetching-products--failed-to-fetch--networkerror" target="_blank" rel="noopener noreferrer" className="underline hover:text-destructive-foreground/80">Troubleshooting Guide</a> for more help.
+              Check the <a href="https://github.com/GoogleCloudPlatform/idx-e2e-shelfspot/blob/main/README.md#troubleshooting-error-fetching-products--failed-to-fetch--networkerror" target="_blank" rel="noopener noreferrer" className="underline font-medium hover:text-destructive-foreground">Troubleshooting Guide</a> for more help.
             </p>
           </AlertDescription>
         </Alert>
       )}
       <Tabs defaultValue="submission" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-6 shadow-md rounded-lg">
-          <TabsTrigger value="submission" className="py-3 text-sm sm:text-base rounded-l-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 mb-8 shadow-lg rounded-xl h-auto p-1.5 bg-muted"> {/* Enhanced TabsList styling */}
+          <TabsTrigger value="submission" className="py-3 text-sm sm:text-base font-medium rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-150 ease-in-out">
             <PackagePlus className="mr-2 h-5 w-5" />
-            Product Submission
+            Add New Product
           </TabsTrigger>
-          <TabsTrigger value="products" className="py-3 text-sm sm:text-base rounded-r-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+          <TabsTrigger value="products" className="py-3 text-sm sm:text-base font-medium rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-150 ease-in-out">
             <List className="mr-2 h-5 w-5" />
-            My Products
+            View My Products
           </TabsTrigger>
         </TabsList>
         <TabsContent value="submission">
@@ -172,3 +178,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
