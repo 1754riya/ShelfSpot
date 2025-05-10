@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Product } from '@/types';
@@ -19,13 +20,13 @@ export function ProductCard({ product }: ProductCardProps) {
             alt={product.name}
             layout="fill"
             objectFit="cover"
-            data-ai-hint="product image"
+            data-ai-hint={product.dataAiHint || "product image"}
             className="rounded-t-lg"
           />
         </div>
       </CardHeader>
-      <CardContent className="flex-grow p-4">
-        <CardTitle className="text-xl font-semibold mb-2">{product.name}</CardTitle>
+      <CardContent className="flex-grow p-4 flex flex-col">
+        <CardTitle className="text-xl font-semibold mb-3">{product.name}</CardTitle>
         <CardDescription className="text-sm text-muted-foreground line-clamp-3 mb-2">
           {product.description}
         </CardDescription>
