@@ -5,7 +5,7 @@ import type { Product } from '@/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProductSubmissionForm } from '@/components/app/product-submission-form';
 import { ProductList } from '@/components/app/product-list';
-import { PackagePlus, List, Loader2 } from 'lucide-react';
+import { PackagePlus, List, Loader2, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -24,27 +24,25 @@ export default function HomePage() {
     try {
       const response = await fetch(`${API_URL}/products`);
       if (!response.ok) {
-        throw new Error(`Failed to fetch products: ${response.statusText}`);
+        throw new Error(`Failed to fetch products: ${response.status} ${response.statusText}`);
       }
       const data: Product[] = await response.json();
       setProducts(data);
     } catch (err) {
+      let detailedMessage = "An unknown error occurred while fetching products.";
       if (err instanceof Error) {
-        setError(err.message);
-        toast({
-          variant: "destructive",
-          title: "Error fetching products",
-          description: err.message,
-        });
-      } else {
-        setError("An unknown error occurred while fetching products.");
-         toast({
-          variant: "destructive",
-          title: "Error fetching products",
-          description: "An unknown error occurred.",
-        });
+        detailedMessage = err.message;
+        if (err.message.toLowerCase().includes('failed to fetch')) {
+          detailedMessage = `Could not connect to the product server at ${API_URL}/products. Please ensure the backend server is running and accessible. Original error: ${err.message}`;
+        }
       }
-      setProducts([]); // Clear products on error or set to some default
+      setError(detailedMessage);
+      toast({
+        variant: "destructive",
+        title: "Error Fetching Products",
+        description: detailedMessage,
+      });
+      setProducts([]);
     } finally {
       setIsLoading(false);
     }
@@ -65,14 +63,10 @@ export default function HomePage() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to add product');
+        const errorData = await response.json().catch(() => ({ message: `Failed to add product: ${response.status} ${response.statusText}` }));
+        throw new Error(errorData.message || `Failed to add product: ${response.status} ${response.statusText}`);
       }
 
-      // Option 1: Re-fetch all products to ensure consistency
-      // await fetchProducts();
-
-      // Option 2: Add the returned product (with ID) to the local state
       const newProduct: Product = await response.json();
       setProducts((prevProducts) => [newProduct, ...prevProducts]);
 
@@ -82,21 +76,19 @@ export default function HomePage() {
       });
       return true; // Indicate success
     } catch (err) {
+      let detailedMessage = "An unknown error occurred while adding product.";
        if (err instanceof Error) {
-        setError(err.message);
-        toast({
-          variant: "destructive",
-          title: "Error adding product",
-          description: err.message,
-        });
-      } else {
-        setError("An unknown error occurred while adding product.");
-         toast({
-          variant: "destructive",
-          title: "Error adding product",
-          description: "An unknown error occurred.",
-        });
+        detailedMessage = err.message;
+        if (err.message.toLowerCase().includes('failed to fetch')) {
+          detailedMessage = `Could not connect to the product server to add product. Please ensure the backend server is running and accessible. Original error: ${err.message}`;
+        }
       }
+      setError(detailedMessage);
+      toast({
+        variant: "destructive",
+        title: "Error Adding Product",
+        description: detailedMessage,
+      });
       return false; // Indicate failure
     }
   };
@@ -113,7 +105,8 @@ export default function HomePage() {
     <div className="container mx-auto py-4 sm:py-8 px-2 sm:px-4">
       {error && (
         <Alert variant="destructive" className="mb-6">
-          <AlertTitle>Error</AlertTitle>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Application Error</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
