@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -24,7 +25,12 @@ export default function HomePage() {
     try {
       const response = await fetch(`${API_URL}/products`);
       if (!response.ok) {
-        const errorBody = await response.text();
+        let errorBody = "No additional details from server.";
+        try {
+          errorBody = await response.text();
+        } catch (e) {
+          // Ignore if response body cannot be read
+        }
         throw new Error(`Failed to fetch products: ${response.status} ${response.statusText}. Server responded with: ${errorBody}`);
       }
       const data: Product[] = await response.json();
@@ -33,18 +39,19 @@ export default function HomePage() {
       let detailedMessage = "An unknown error occurred while fetching products.";
       if (err instanceof Error) {
         detailedMessage = err.message;
-        if (err.message.toLowerCase().includes('failed to fetch')) {
-          detailedMessage = `Could not connect to the product server at ${API_URL}. Please ensure the backend server (Express.js) is running (e.g., using 'npm run server:dev') and accessible. Original error: ${err.message}`;
+        if (err.message.toLowerCase().includes('failed to fetch') || err.constructor.name === 'TypeError' /* NetworkError often a TypeError */) {
+          detailedMessage = `NetworkError: Could not connect to the product server at ${API_URL}. Please ensure the backend server (Express.js) is running (e.g., using 'npm run server:dev') and accessible. Also, check your browser's console for more specific network error details (e.g., CORS issues). Original error: ${err.message}`;
         }
       }
+      console.error("Fetch Products Error:", detailedMessage, err);
       setError(detailedMessage);
       toast({
         variant: "destructive",
         title: "Error Fetching Products",
         description: detailedMessage,
-        duration: 10000, // Keep toast longer for error messages
+        duration: 15000, 
       });
-      setProducts([]); // Clear products on error
+      setProducts([]); 
     } finally {
       setIsLoading(false);
     }
@@ -65,8 +72,13 @@ export default function HomePage() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: `Failed to add product: ${response.status} ${response.statusText}.` }));
-        throw new Error(errorData.message || `Failed to add product: ${response.status} ${response.statusText}.`);
+        let errorBody = "No additional details from server.";
+        try {
+          errorBody = await response.json().catch(() => `Server response: ${response.status} ${response.statusText}`);
+        } catch (e) {
+          // Ignore if response body cannot be read
+        }
+        throw new Error( typeof errorBody === 'string' ? errorBody : (errorBody as {message: string})?.message || `Failed to add product: ${response.status} ${response.statusText}.`);
       }
 
       const newProduct: Product = await response.json();
@@ -76,23 +88,24 @@ export default function HomePage() {
         title: 'Product Submitted!',
         description: `${productData.name} has been added to your products.`,
       });
-      return true; // Indicate success
+      return true; 
     } catch (err) {
       let detailedMessage = "An unknown error occurred while adding product.";
        if (err instanceof Error) {
         detailedMessage = err.message;
-        if (err.message.toLowerCase().includes('failed to fetch')) {
-          detailedMessage = `Could not connect to the product server at ${API_URL} to add product. Please ensure the backend server (Express.js) is running (e.g., using 'npm run server:dev') and accessible. Original error: ${err.message}`;
+        if (err.message.toLowerCase().includes('failed to fetch') || err.constructor.name === 'TypeError') {
+          detailedMessage = `NetworkError: Could not connect to the product server at ${API_URL} to add product. Please ensure the backend server (Express.js) is running (e.g., using 'npm run server:dev') and accessible. Original error: ${err.message}`;
         }
       }
-      setError(detailedMessage); // Set error state to display in the UI
+      console.error("Add Product Error:", detailedMessage, err);
+      setError(detailedMessage); 
       toast({
         variant: "destructive",
         title: "Error Adding Product",
         description: detailedMessage,
-        duration: 10000, // Keep toast longer for error messages
+        duration: 15000, 
       });
-      return false; // Indicate failure
+      return false; 
     }
   };
 
@@ -134,3 +147,4 @@ export default function HomePage() {
     </div>
   );
 }
+

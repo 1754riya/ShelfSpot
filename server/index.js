@@ -76,7 +76,7 @@ app.get('/api/products', async (req, res) => {
     const result = await pool.query('SELECT id, name, price, description, image_url AS "imageUrl", data_ai_hint AS "dataAiHint", created_at FROM products ORDER BY created_at DESC');
     res.json(result.rows);
   } catch (err) {
-    console.error('🔴 Error fetching products:', err.stack);
+    console.error('🔴 Error fetching products from database:', err.stack);
     res.status(500).json({ message: 'Error fetching products from database.' });
   }
 });
@@ -99,14 +99,22 @@ app.post('/api/products', async (req, res) => {
     const result = await pool.query(queryText, values);
     res.status(201).json(result.rows[0]);
   } catch (err) {
-    console.error('🔴 Error adding product:', err.stack);
+    console.error('🔴 Error adding product to database:', err.stack);
     res.status(500).json({ message: 'Error adding product to database.' });
   }
 });
 
+// Catch-all for undefined API routes
+app.use('/api/*', (req, res) => {
+  res.status(404).json({ message: `API endpoint not found: ${req.method} ${req.originalUrl}` });
+});
+
+
 // Start server
 app.listen(PORT, async () => {
-  console.log(`🚀 Express server listening on port ${PORT}`);
+  console.log(`\n🚀 Express server listening on port ${PORT}`);
+  console.log(`   Frontend should connect to: http://localhost:${PORT}/api`);
+  
   // Attempt to connect to DB and create table on startup
   try {
     const client = await pool.connect();
@@ -116,9 +124,18 @@ app.listen(PORT, async () => {
   } catch (err) {
     console.error('🔴 Failed to connect to PostgreSQL database initially or create table:', err.stack);
     console.error("👉 Please double-check your PostgreSQL server is running and accessible with the credentials in .env");
+    console.error("👉 The server will attempt to run, but API endpoints requiring the database will likely fail.");
     // Optionally, you might want to exit the process if DB connection is critical for startup
     // For now, we let it run so other errors can be seen, but a real app might exit:
     // process.exit(1); 
   }
+  console.log("\n✨ Backend server setup complete. Waiting for requests...\n");
 });
 
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  console.log('\n🔴 Shutting down server...');
+  await pool.end();
+  console.log('✅ PostgreSQL pool closed.');
+  process.exit(0);
+});
