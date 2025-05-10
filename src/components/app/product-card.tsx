@@ -5,7 +5,7 @@ import type { Product } from '@/types';
 import Image from 'next/image';
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { DollarSign, ShoppingCart, Trash2, AlertTriangle } from 'lucide-react';
+import { DollarSign, ShoppingCart, Trash2, AlertTriangle, Package } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -31,19 +31,22 @@ export function ProductCard({ product, onDeleteProduct }: ProductCardProps) {
   const { toast } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Ensure product.id is always a string, even if undefined from backend briefly
   const productId = product.id || ''; 
-  const derivedHint = product.dataAiHint || product.name?.split(' ').slice(0, 2).join(' ') || "product";
-  const seedValue = productId ? `${derivedHint.toLowerCase()}-${productId.substring(0, 4)}` : derivedHint.toLowerCase();
+  const derivedHint = product.dataAiHint || product.name?.split(' ').slice(0, 2).join(' ') || "product item"; // Updated hint
+  const seedValue = productId ? `${derivedHint.toLowerCase().replace(' ', '-')}-${productId.substring(0, 4)}` : derivedHint.toLowerCase().replace(' ', '-');
   
   const imageUrl = product.imageUrl || `https://picsum.photos/seed/${encodeURIComponent(seedValue)}/600/450`;
 
   const handleAddToCart = () => {
-    // Placeholder for add to cart functionality
     console.log(`Added ${product.name} to cart`);
     toast({
       title: "Added to Cart!",
       description: `${product.name} has been added to your cart.`,
+      action: ( // Example action
+        <Button variant="outline" size="sm" onClick={() => console.log('Undo add to cart')}>
+          Undo
+        </Button>
+      ),
     });
   };
 
@@ -57,86 +60,89 @@ export function ProductCard({ product, onDeleteProduct }: ProductCardProps) {
         return;
     }
     setIsDeleting(true);
-    await onDeleteProduct(productId);
+    const success = await onDeleteProduct(productId);
     setIsDeleting(false);
-    // Toast messages are handled in the parent component (HomePage)
+    if (success) {
+        // Toast moved to parent to avoid duplication if parent also toasts
+    }
   };
 
 
   return (
-    <Card className="flex flex-col overflow-hidden rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out group hover:scale-[1.02] bg-card/80 backdrop-blur-sm border-border/60 hover:border-primary/70 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 focus-within:border-primary/70">
+    <Card className="flex flex-col overflow-hidden rounded-xl shadow-lg hover:shadow-xl hover:shadow-primary/20 dark:hover:shadow-primary/30 transition-all duration-300 ease-in-out group bg-card/80 backdrop-blur-sm border border-border/60 hover:border-primary/50 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 focus-within:border-primary/70">
       <CardHeader className="p-0 border-b border-border/40 relative">
-        <div className="absolute top-2 right-2 z-10">
+        <div className="absolute top-3 right-3 z-10"> {/* Increased spacing */}
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full bg-background/70 text-destructive/80 hover:bg-destructive hover:text-destructive-foreground transition-all duration-200 opacity-70 group-hover:opacity-100 shadow-md hover:shadow-lg">
+                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full bg-background/80 text-destructive/80 hover:bg-destructive hover:text-destructive-foreground transition-all duration-200 opacity-80 group-hover:opacity-100 shadow-md hover:shadow-lg active:scale-95">
                   <Trash2 className="h-5 w-5" />
                   <span className="sr-only">Delete Product</span>
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent>
+              <AlertDialogContent className="rounded-xl shadow-2xl">
                 <AlertDialogHeader>
-                  <AlertDialogTitle className="flex items-center">
-                    <AlertTriangle className="mr-2 h-6 w-6 text-destructive" />
-                    Are you sure you want to delete this product?
+                  <AlertDialogTitle className="flex items-center text-xl">
+                    <AlertTriangle className="mr-3 h-7 w-7 text-destructive" /> {/* Larger icon */}
+                    Confirm Deletion
                   </AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete the product
-                    <span className="font-semibold"> "{product.name}"</span> from the database.
+                  <AlertDialogDescription className="text-base">
+                    Are you sure you want to delete the product:
+                    <strong className="block mt-1 text-foreground">"{product.name}"</strong>? 
+                    This action cannot be undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel className="hover:bg-muted/80">Cancel</AlertDialogCancel>
+                <AlertDialogFooter className="mt-2">
+                  <AlertDialogCancel className="hover:bg-muted/80 px-6 py-2.5 text-base">Cancel</AlertDialogCancel> {/* Larger buttons */}
                   <AlertDialogAction 
                     onClick={handleDeleteConfirm} 
                     disabled={isDeleting}
-                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90 px-6 py-2.5 text-base active:scale-95"
                   >
-                    {isDeleting ? "Deleting..." : "Yes, delete product"}
+                    {isDeleting ? "Deleting..." : "Yes, Delete"}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
         </div>
-        <div className="relative aspect-[16/10] w-full bg-muted/40 overflow-hidden rounded-t-xl">
+        <div className="relative aspect-[16/10] w-full bg-muted/30 overflow-hidden rounded-t-xl">
           <Image
             src={imageUrl}
             alt={product.name || 'Product Image'}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-cover rounded-t-xl transition-transform duration-500 group-hover:scale-105"
-            data-ai-hint={derivedHint} // Use derivedHint for the AI hint attribute
+            className="object-cover rounded-t-xl transition-transform duration-500 ease-in-out group-hover:scale-110"
+            data-ai-hint={derivedHint}
             onError={(e) => {
-              const fallbackSeed = `fb-${seedValue}-${productId || 'no-id'}`.toLowerCase();
+              const fallbackSeed = `fb-${seedValue}-${productId || 'no-id'}`.toLowerCase().replace(' ', '-');
               e.currentTarget.srcset = `https://picsum.photos/seed/${encodeURIComponent(fallbackSeed)}/600/450`; 
               e.currentTarget.src = `https://picsum.photos/seed/${encodeURIComponent(fallbackSeed)}/600/450`;
             }}
           />
            {!product.imageUrl && (
-            <Badge variant="secondary" className="absolute top-3 left-3 bg-background/90 backdrop-blur-md px-3 py-1 text-xs shadow-md border border-border/50 group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-200">
-              Placeholder
+            <Badge variant="outline" className="absolute top-3 left-3 bg-background/90 backdrop-blur-sm px-3 py-1.5 text-xs shadow-md border-border/70 group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-200 flex items-center gap-1">
+              <Package size={14} /> Placeholder {/* Added icon */}
             </Badge>
           )}
         </div>
       </CardHeader>
       <CardContent className="flex-grow p-5 sm:p-6 flex flex-col">
-        <CardTitle className="text-xl md:text-2xl font-semibold mb-2 leading-tight tracking-tight text-foreground/90 group-hover:text-primary transition-colors duration-200">
+        <CardTitle className="text-xl md:text-2xl font-semibold mb-2.5 leading-tight tracking-tight text-foreground/90 group-hover:text-primary transition-colors duration-300">
           {product.name || "Unnamed Product"}
         </CardTitle>
-        <CardDescription className="text-sm sm:text-base text-muted-foreground line-clamp-3 sm:line-clamp-4 mb-4 flex-grow leading-relaxed group-hover:text-foreground/80 transition-colors duration-200">
+        <CardDescription className="text-sm sm:text-base text-muted-foreground line-clamp-3 sm:line-clamp-4 mb-4 flex-grow leading-relaxed group-hover:text-foreground/80 transition-colors duration-300">
           {product.description || "No description available."}
         </CardDescription>
       </CardContent>
-      <CardFooter className="p-5 sm:p-6 pt-4 border-t border-border/40 mt-auto bg-muted/20 rounded-b-xl group-hover:bg-muted/40 transition-colors duration-200">
+      <CardFooter className="p-5 sm:p-6 pt-4 border-t border-border/40 mt-auto bg-muted/30 rounded-b-xl group-hover:bg-muted/50 transition-colors duration-300">
         <div className="flex items-center justify-between w-full">
-          <div className="flex items-center text-xl md:text-2xl font-bold text-primary group-hover:text-accent transition-colors duration-200">
+          <div className="flex items-center text-xl md:text-2xl font-bold text-primary group-hover:text-accent transition-colors duration-300">
             <DollarSign className="mr-1.5 h-5 w-5 sm:h-6 sm:w-6" />
-            <span>{typeof product.price === 'number' ? product.price.toFixed(2) : 'N/A'}</span>
+            <span>{typeof product.price === 'number' && !isNaN(product.price) ? product.price.toFixed(2) : 'N/A'}</span>
           </div>
           <Button 
             size="sm" 
-            variant="outline" 
-            className="group-hover:bg-primary group-hover:text-primary-foreground hover:shadow-md transition-all duration-200 ease-in-out transform group-hover:scale-105 border-primary/50 hover:border-primary text-primary hover:text-primary-foreground"
+            variant="default" 
+            className="group-hover:bg-accent group-hover:text-accent-foreground shadow-md hover:shadow-lg hover:shadow-accent/30 transition-all duration-300 ease-in-out transform hover:scale-105 active:scale-95"
             onClick={handleAddToCart}
             aria-label={`Add ${product.name} to cart`}
           >

@@ -6,9 +6,10 @@ import type { Product } from '@/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProductSubmissionForm } from '@/components/app/product-submission-form';
 import { ProductList } from '@/components/app/product-list';
-import { PackagePlus, List, Loader2, AlertTriangle, LayoutDashboard } from 'lucide-react';
+import { PackagePlus, List, Loader2, AlertTriangle, LayoutDashboard, ShieldAlert } from 'lucide-react'; // Added ShieldAlert
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from '@/components/ui/button';
 
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
@@ -23,9 +24,9 @@ export default function HomePage() {
     const price = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
     return {
       ...product,
-      id: product.id || '', // Ensure id is always a string
+      id: product.id || String(Date.now() + Math.random()), // Ensure id is always a string, fallback for safety
       price: typeof price === 'number' && !isNaN(price) ? price : 0,
-      dataAiHint: product.dataAiHint || product.data_ai_hint || product.name?.toLowerCase().split(" ").slice(0,2).join(" ") || 'product'
+      dataAiHint: product.dataAiHint || product.data_ai_hint || product.name?.toLowerCase().split(" ").slice(0,2).join(" ") || 'product item' // Updated hint
     };
   };
 
@@ -60,7 +61,7 @@ export default function HomePage() {
         variant: "destructive",
         title: "Error Fetching Products",
         description: detailedMessage,
-        duration: 7000, 
+        duration: 9000, // Increased duration
       });
       setProducts([]); 
     } finally {
@@ -92,10 +93,9 @@ export default function HomePage() {
             const errorBodyJson = await response.json();
             errorBodyText = errorBodyJson.message || JSON.stringify(errorBodyJson);
         } catch (e) {
-            // If response is not JSON, try to read as text
             try {
                 errorBodyText = await response.text();
-            } catch (e) {
+            } catch (parseTextError) {
                 // If reading as text fails, use the initial status text
             }
         }
@@ -109,7 +109,8 @@ export default function HomePage() {
 
       toast({
         title: 'Product Submitted!',
-        description: `${newProduct.name} has been added to your products.`,
+        description: `${newProduct.name} has been added successfully.`,
+        className: 'bg-green-500 text-white dark:bg-green-600', // Custom success toast style
       });
       return true; 
     } catch (err) {
@@ -126,7 +127,7 @@ export default function HomePage() {
         variant: "destructive",
         title: "Error Adding Product",
         description: detailedMessage,
-        duration: 7000, 
+        duration: 9000, 
       });
       return false; 
     }
@@ -146,7 +147,7 @@ export default function HomePage() {
         } catch (e) {
             try {
                 errorBodyText = await response.text();
-            } catch (e) {
+            } catch (parseTextError) {
               //
             }
         }
@@ -157,6 +158,7 @@ export default function HomePage() {
       toast({
         title: 'Product Deleted',
         description: 'The product has been successfully removed.',
+        className: 'bg-primary text-primary-foreground', // Informative toast style
       });
       return true;
     } catch (err) {
@@ -172,7 +174,7 @@ export default function HomePage() {
         variant: "destructive",
         title: "Error Deleting Product",
         description: detailedMessage,
-        duration: 7000,
+        duration: 9000,
       });
       return false;
     }
@@ -182,8 +184,8 @@ export default function HomePage() {
   if (isLoading) {
     return (
       <div className="container mx-auto py-10 px-4 flex flex-col justify-center items-center min-h-[calc(100vh-12rem)]">
-        <Loader2 className="h-16 w-16 animate-spin text-primary mb-6" />
-        <p className="text-xl text-muted-foreground">Loading Products...</p>
+        <Loader2 className="h-20 w-20 animate-spin text-primary mb-8" /> {/* Larger loader */}
+        <p className="text-2xl text-muted-foreground tracking-wide">Loading Products...</p> {/* Enhanced text */}
       </div>
     );
   }
@@ -191,32 +193,36 @@ export default function HomePage() {
   return (
     <div className="container mx-auto py-8 sm:py-12 px-4">
       <div className="flex items-center justify-center sm:justify-start mb-10">
-        <LayoutDashboard className="h-10 w-10 mr-3 text-primary" />
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
+        <LayoutDashboard className="h-12 w-12 mr-4 text-primary" /> {/* Larger icon */}
+        <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent"> {/* Gradient text */}
           Product Dashboard
         </h1>
       </div>
 
-      {error && !products.length && ( // Only show main error if no products are loaded
-        <Alert variant="destructive" className="mb-8 shadow-xl rounded-xl p-6 border-destructive/70 bg-destructive/5 hover:shadow-destructive/20 transition-shadow duration-300">
-          <AlertTriangle className="h-6 w-6 text-destructive" />
-          <AlertTitle className="font-bold text-lg text-destructive">Application Error</AlertTitle>
-          <AlertDescription className="text-base mt-1 text-destructive/90">{error}
-          <p className="mt-3 text-sm text-destructive/80">
+      {error && !products.length && ( 
+        <Alert variant="destructive" className="mb-8 shadow-xl rounded-xl p-6 border-destructive/70 bg-destructive/10 hover:shadow-destructive/30 transition-all duration-300 ease-in-out">
+          <ShieldAlert className="h-8 w-8 text-destructive" /> {/* Different Icon */}
+          <AlertTitle className="font-bold text-xl text-destructive">Application Error</AlertTitle> {/* Larger Title */}
+          <AlertDescription className="text-base mt-2 text-destructive/90">{error}
+          <p className="mt-4 text-sm text-destructive/80">
               Please ensure your backend server is running (<code>npm run server:dev</code>) and connected to the PostgreSQL database.
-              Check the <a href="https://github.com/GoogleCloudPlatform/idx-e2e-shelfspot/blob/main/README.md#troubleshooting-error-fetching-products--failed-to-fetch--networkerror" target="_blank" rel="noopener noreferrer" className="underline font-medium hover:text-destructive transition-colors">Troubleshooting Guide</a> for more help.
+              Check the <a href="https://github.com/GoogleCloudPlatform/idx-e2e-shelfspot/blob/main/README.md#troubleshooting-error-fetching-products--failed-to-fetch--networkerror" target="_blank" rel="noopener noreferrer" className="underline font-semibold hover:text-destructive transition-colors">Troubleshooting Guide</a> for more help.
             </p>
+            <Button variant="outline" onClick={fetchProducts} className="mt-6 border-destructive text-destructive hover:bg-destructive/10">
+              <Loader2 className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : 'hidden'}`} />
+              Retry Connection
+            </Button>
           </AlertDescription>
         </Alert>
       )}
       <Tabs defaultValue="submission" className="w-full">
-        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 mb-8 shadow-lg rounded-xl h-auto p-1.5 bg-muted/70 backdrop-blur-sm border border-border/50">
-          <TabsTrigger value="submission" className="py-3 text-sm sm:text-base font-medium rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200 ease-in-out flex items-center justify-center gap-2 hover:bg-primary/10 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-primary/80">
-            <PackagePlus className="h-5 w-5" />
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 mb-8 shadow-xl rounded-xl h-auto p-2 bg-muted/60 backdrop-blur-md border border-border/50">
+          <TabsTrigger value="submission" className="py-3.5 text-base sm:text-lg font-semibold rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-primary/40 data-[state=active]:shadow-lg transition-all duration-300 ease-in-out flex items-center justify-center gap-2.5 hover:bg-primary/10 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-primary transform hover:scale-105 data-[state=active]:scale-100">
+            <PackagePlus className="h-6 w-6" />
             Product Submission
           </TabsTrigger>
-          <TabsTrigger value="products" className="py-3 text-sm sm:text-base font-medium rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200 ease-in-out flex items-center justify-center gap-2 hover:bg-primary/10 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-primary/80">
-            <List className="mr-2 h-5 w-5" />
+          <TabsTrigger value="products" className="py-3.5 text-base sm:text-lg font-semibold rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-primary/40 data-[state=active]:shadow-lg transition-all duration-300 ease-in-out flex items-center justify-center gap-2.5 hover:bg-primary/10 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-primary transform hover:scale-105 data-[state=active]:scale-100">
+            <List className="mr-2 h-6 w-6" />
             My Products
           </TabsTrigger>
         </TabsList>
@@ -230,4 +236,3 @@ export default function HomePage() {
     </div>
   );
 }
-

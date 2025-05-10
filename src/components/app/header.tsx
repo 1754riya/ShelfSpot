@@ -9,10 +9,10 @@ export function AppHeader() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/90 backdrop-blur-lg supports-[backdrop-filter]:bg-background/75 shadow-sm">
       <div className="container flex h-20 items-center justify-center"> {/* Changed justify-between to justify-center */}
-        <div className="flex items-center">
-          <a href="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-200"> {/* Increased space & Added hover effect */}
-            <ShoppingBag className="h-8 w-8 text-primary" /> {/* Slightly larger icon */}
-            <span className="font-bold text-2xl sm:text-3xl tracking-tight"> {/* Increased font size and tracking */}
+        <div className="flex items-center group"> {/* Added group for coordinated hover effects */}
+          <a href="/" className="flex items-center space-x-3 transition-opacity duration-300 ease-in-out group-hover:opacity-80">
+            <ShoppingBag className="h-8 w-8 text-primary transition-transform duration-300 ease-in-out group-hover:scale-110 group-hover:text-accent" /> {/* Slightly larger icon, hover effect */}
+            <span className="font-bold text-2xl sm:text-3xl tracking-tight transition-colors duration-300 ease-in-out group-hover:text-accent"> {/* Increased font size and tracking, hover effect */}
               ShelfSpot
             </span>
           </a>
@@ -36,4 +36,3 @@ export function AppHeader() {
 }
 
     
-

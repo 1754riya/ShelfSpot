@@ -8,76 +8,97 @@ body {
 
 @layer base {
   :root {
-    --background: 40 30% 98%; /* Very Light Warm Beige */
-    --foreground: 40 10% 20%; /* Dark Warm Gray */
-    --card: 30 50% 99%; /* Slightly Off-White, warm tint */
-    --card-foreground: 40 10% 20%; /* Dark Warm Gray */
-    --popover: 30 50% 99%; /* Slightly Off-White, warm tint */
-    --popover-foreground: 40 10% 20%; /* Dark Warm Gray */
-    --primary: 205 65% 45%; /* Steel Blue */
-    --primary-foreground: 210 40% 98%; /* Very Light Blue/White */
-    --secondary: 200 50% 90%; /* Soft Light Blue */
-    --secondary-foreground: 205 50% 30%; /* Darker Steel Blue */
-    --muted: 40 20% 94%; /* Light Warm Gray */
-    --muted-foreground: 40 10% 45%; /* Mid Warm Gray */
-    --accent: 30 80% 60%; /* Warm Orange/Peach */
-    --accent-foreground: 40 10% 15%; /* Dark Brown/Gray for contrast on accent */
-    --destructive: 0 70% 55%; /* Adjusted Red */
+    --background: 0 0% 100%; /* Neutral White */
+    --foreground: 240 10% 3.9%; /* Dark Slate Blue */
+    
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    
+    --primary: 200 100% 50%; /* Soft Blue - #A0D2EB, more vibrant */
+    --primary-foreground: 210 40% 98%; /* White for contrast */
+    
+    --secondary: 200 60% 90%; /* Lighter Soft Blue */
+    --secondary-foreground: 200 50% 30%; /* Darker Blue for text on secondary */
+    
+    --muted: 240 4.8% 95.9%; /* Light Grey */
+    --muted-foreground: 240 3.8% 46.1%; /* Mid Grey */
+    
+    --accent: 180 100% 35%; /* Teal - #008080, more vibrant */
+    --accent-foreground: 0 0% 98%; /* White for contrast on accent */
+    
+    --destructive: 0 84.2% 60.2%; /* Standard Red */
     --destructive-foreground: 0 0% 98%; /* White */
-    --border: 40 20% 88%; /* Warm Gray Border */
-    --input: 40 20% 92%; /* Slightly darker warm gray for input background/border */
-    --ring: 205 60% 55%; /* Slightly brighter Steel Blue for focus rings */
+    
+    --border: 240 5.9% 90%; /* Light Grey Border */
+    --input: 240 5.9% 90%; /* Light Grey Input */
+    --ring: 200 100% 50%; /* Soft Blue for focus rings, matching primary */
+    
+    --radius: 0.5rem;
+
+    /* Chart colors - can be adjusted if charts are implemented */
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
 
-    /* Sidebar variables aligned with the new theme */
+    /* Sidebar variables - kept for consistency if sidebar is added later */
     --sidebar-background: var(--background);
     --sidebar-foreground: var(--foreground);
     --sidebar-primary: var(--primary);
     --sidebar-primary-foreground: var(--primary-foreground);
-    --sidebar-accent: 40 25% 92%; /* Light Warm Gray for hover */
+    --sidebar-accent: 240 4.8% 95.9%; /* Light Grey for hover */
     --sidebar-accent-foreground: var(--primary); /* Primary color for text on hover */
     --sidebar-border: var(--border);
     --sidebar-ring: var(--ring);
   }
 
   .dark {
-    --background: 40 10% 15%; /* Dark Warm Gray/Brown */
-    --foreground: 40 20% 95%; /* Light Warm Beige */
-    --card: 40 10% 20%; /* Slightly lighter than background, warm */
-    --card-foreground: 40 20% 95%;
-    --popover: 40 10% 20%;
-    --popover-foreground: 40 20% 95%;
-    --primary: 205 60% 55%; /* Brighter Steel Blue for dark mode */
-    --primary-foreground: 40 10% 10%; /* Dark for contrast on primary */
-    --secondary: 200 40% 30%; /* Darker Soft Blue */
-    --secondary-foreground: 200 30% 90%; /* Lighter blue for secondary text */
-    --muted: 40 10% 25%; /* Dark Warm Gray for muted backgrounds */
-    --muted-foreground: 40 15% 70%; /* Mid Warm Gray for muted text */
-    --accent: 30 70% 65%; /* Slightly brighter Peach/Orange for accents */
-    --accent-foreground: 40 5% 10%; /* Very dark for contrast on accent */
-    --destructive: 0 60% 50%; /* Adjusted Red for dark mode */
-    --destructive-foreground: 0 0% 98%;
-    --border: 40 10% 30%; /* Dark Warm Gray border */
-    --input: 40 10% 28%; /* Dark Warm Gray input background/border */
-    --ring: 205 55% 65%; /* Brighter Steel Blue for focus rings */
+    --background: 240 10% 3.9%; /* Dark Slate Blue */
+    --foreground: 0 0% 98%; /* White */
+    
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    
+    --primary: 200 90% 55%; /* Brighter Soft Blue for dark mode */
+    --primary-foreground: 240 5% 90%; /* Light text for contrast on primary */
+    
+    --secondary: 200 50% 30%; /* Darker Soft Blue */
+    --secondary-foreground: 0 0% 98%; /* White */
+    
+    --muted: 240 3.7% 15.9%; /* Darker Grey */
+    --muted-foreground: 240 5% 64.9%; /* Lighter Grey text */
+    
+    --accent: 180 90% 40%; /* Brighter Teal for dark mode */
+    --accent-foreground: 0 0% 98%; /* White */
+    
+    --destructive: 0 62.8% 30.6%; /* Darker Red */
+    --destructive-foreground: 0 0% 98%; /* White */
+    
+    --border: 240 3.7% 15.9%; /* Darker Grey Border */
+    --input: 240 3.7% 15.9%; /* Darker Grey Input */
+    --ring: 200 90% 55%; /* Brighter Soft Blue for rings */
+
+    /* Chart colors for dark mode - can be adjusted */
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
 
-    /* Sidebar variables aligned with the new theme for dark mode */
+    /* Sidebar variables for dark mode */
     --sidebar-background: var(--background);
     --sidebar-foreground: var(--foreground);
     --sidebar-primary: var(--primary);
     --sidebar-primary-foreground: var(--primary-foreground);
-    --sidebar-accent: 40 10% 22%; /* Darker Warm Gray for hover */
-    --sidebar-accent-foreground: var(--primary); /* Primary color for text on hover */
+    --sidebar-accent: 240 3.7% 15.9%; /* Darker Grey for hover */
+    --sidebar-accent-foreground: var(--primary);
     --sidebar-border: var(--border);
     --sidebar-ring: var(--ring);
   }
@@ -89,5 +110,14 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+    /* Add a subtle gradient background for a more modern feel */
+    background-image: linear-gradient(to bottom right, hsl(var(--background)), hsl(var(--muted)/0.5));
   }
+}
+
+/* Enhance focus visibility globally for better UX */
+*:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px hsl(var(--ring)/0.3);
 }
