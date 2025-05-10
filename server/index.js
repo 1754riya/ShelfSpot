@@ -6,6 +6,30 @@ const crypto = require('crypto');
 const { Pool } = require('pg');
 require('dotenv').config(); // To load .env variables
 
+// --- Environment Variable Check for PostgreSQL ---
+const requiredDbEnvVars = ['PGUSER', 'PGHOST', 'PGDATABASE', 'PGPASSWORD', 'PGPORT'];
+const missingDbEnvVars = requiredDbEnvVars.filter(varName => !process.env[varName]);
+
+if (missingDbEnvVars.length > 0) {
+  console.error(`\n🔴 FATAL ERROR: Missing required PostgreSQL environment variables: ${missingDbEnvVars.join(', ')}`);
+  console.error("👉 Please ensure these are defined in your .env file in the project root.");
+  console.error("Example .env content:");
+  console.error("PGUSER=your_postgres_user");
+  console.error("PGHOST=localhost");
+  console.error("PGDATABASE=your_postgres_database");
+  console.error("PGPASSWORD=your_postgres_password");
+  console.error("PGPORT=5432\n");
+  process.exit(1); // Exit if critical DB config is missing
+}
+
+console.log("✅ PostgreSQL Configuration (from .env):");
+console.log(`  User: ${process.env.PGUSER}`);
+console.log(`  Host: ${process.env.PGHOST}`);
+console.log(`  Database: ${process.env.PGDATABASE}`);
+console.log(`  Port: ${process.env.PGPORT}`);
+console.log(`  Password: ${process.env.PGPASSWORD ? '[SET]' : '[NOT SET - CRITICAL!]'}\n`);
+// --- End Environment Variable Check ---
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -33,9 +57,11 @@ const createProductsTable = async () => {
   `;
   try {
     await pool.query(queryText);
-    console.log('Products table checked/created successfully.');
+    console.log('✅ Products table checked/created successfully.');
   } catch (err) {
-    console.error('Error creating products table:', err.stack);
+    console.error('🔴 Error creating products table:', err.stack);
+    // If table creation fails, it's a significant issue, but server might still run for other routes (if any)
+    // Consider if process.exit(1) is appropriate here depending on application requirements.
   }
 };
 
@@ -50,7 +76,7 @@ app.get('/api/products', async (req, res) => {
     const result = await pool.query('SELECT id, name, price, description, image_url AS "imageUrl", data_ai_hint AS "dataAiHint", created_at FROM products ORDER BY created_at DESC');
     res.json(result.rows);
   } catch (err) {
-    console.error('Error fetching products:', err.stack);
+    console.error('🔴 Error fetching products:', err.stack);
     res.status(500).json({ message: 'Error fetching products from database.' });
   }
 });
@@ -73,23 +99,26 @@ app.post('/api/products', async (req, res) => {
     const result = await pool.query(queryText, values);
     res.status(201).json(result.rows[0]);
   } catch (err) {
-    console.error('Error adding product:', err.stack);
+    console.error('🔴 Error adding product:', err.stack);
     res.status(500).json({ message: 'Error adding product to database.' });
   }
 });
 
 // Start server
 app.listen(PORT, async () => {
-  console.log(`Express server listening on port ${PORT}`);
+  console.log(`🚀 Express server listening on port ${PORT}`);
   // Attempt to connect to DB and create table on startup
   try {
     const client = await pool.connect();
-    console.log('Connected to PostgreSQL database successfully!');
+    console.log('✅ Connected to PostgreSQL database successfully!');
     await createProductsTable();
     client.release(); // Release the client back to the pool
   } catch (err) {
-    console.error('Failed to connect to PostgreSQL database or create table:', err.stack);
-    // Optionally, you might want to exit the process if DB connection is critical
+    console.error('🔴 Failed to connect to PostgreSQL database initially or create table:', err.stack);
+    console.error("👉 Please double-check your PostgreSQL server is running and accessible with the credentials in .env");
+    // Optionally, you might want to exit the process if DB connection is critical for startup
+    // For now, we let it run so other errors can be seen, but a real app might exit:
     // process.exit(1); 
   }
 });
+
