@@ -8,8 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useToast } from '@/hooks/use-toast';
-import { PlusCircle } from 'lucide-react';
+// Removed useToast import as it's handled in the parent page.tsx
+import { PlusCircle, Loader2 } from 'lucide-react';
+import { useState } from 'react';
 
 const productFormSchema = z.object({
   name: z.string().min(2, { message: 'Product name must be at least 2 characters.' }),
@@ -21,32 +22,37 @@ const productFormSchema = z.object({
 type ProductFormValues = z.infer<typeof productFormSchema>;
 
 interface ProductSubmissionFormProps {
-  onAddProduct: (product: Product) => void;
+  onAddProduct: (productData: Omit<Product, 'id'>) => Promise<boolean>;
 }
 
 export function ProductSubmissionForm({ onAddProduct }: ProductSubmissionFormProps) {
-  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
     defaultValues: {
       name: '',
-      price: 0,
+      price: 0, // Keep as number
       description: '',
       imageUrl: '',
     },
   });
 
-  function onSubmit(data: ProductFormValues) {
-    const newProduct: Product = {
-      id: crypto.randomUUID(),
-      ...data,
+  async function onSubmit(data: ProductFormValues) {
+    setIsSubmitting(true);
+    // The product data sent to the backend doesn't need an ID, backend will generate it.
+    const productData: Omit<Product, 'id'> = {
+      name: data.name,
+      price: data.price,
+      description: data.description,
+      imageUrl: data.imageUrl || undefined, // Ensure optional field is handled
     };
-    onAddProduct(newProduct);
-    toast({
-      title: 'Product Submitted!',
-      description: `${data.name} has been added to your products.`,
-    });
-    form.reset();
+    
+    const success = await onAddProduct(productData);
+    
+    if (success) {
+      form.reset(); // Reset form only on successful submission
+    }
+    setIsSubmitting(false);
   }
 
   return (
@@ -73,7 +79,9 @@ export function ProductSubmissionForm({ onAddProduct }: ProductSubmissionFormPro
               <FormItem>
                 <FormLabel>Price</FormLabel>
                 <FormControl>
-                  <Input type="number" placeholder="e.g., 299.99" {...field} step="0.01" />
+                  <Input type="number" placeholder="e.g., 299.99" {...field} step="0.01" 
+                   onChange={e => field.onChange(parseFloat(e.target.value) || 0)} // Ensure value is number
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -106,8 +114,12 @@ export function ProductSubmissionForm({ onAddProduct }: ProductSubmissionFormPro
               </FormItem>
             )}
           />
-          <Button type="submit" className="w-full sm:w-auto" disabled={form.formState.isSubmitting}>
-            <PlusCircle className="mr-2 h-4 w-4" />
+          <Button type="submit" className="w-full sm:w-auto" disabled={isSubmitting}>
+            {isSubmitting ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <PlusCircle className="mr-2 h-4 w-4" />
+            )}
             Add Product
           </Button>
         </form>
