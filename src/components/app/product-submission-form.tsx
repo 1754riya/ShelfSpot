@@ -22,7 +22,7 @@ const productFormSchema = z.object({
 type ProductFormValues = z.infer<typeof productFormSchema>;
 
 interface ProductSubmissionFormProps {
-  onAddProduct: (productData: Omit<Product, 'id'>) => Promise<boolean>;
+  onAddProduct: (productData: Omit<Product, 'id' | 'dataAiHint'>) => Promise<boolean>;
 }
 
 export function ProductSubmissionForm({ onAddProduct }: ProductSubmissionFormProps) {
@@ -39,8 +39,8 @@ export function ProductSubmissionForm({ onAddProduct }: ProductSubmissionFormPro
 
   async function onSubmit(data: ProductFormValues) {
     setIsSubmitting(true);
-    // The product data sent to the backend doesn't need an ID, backend will generate it.
-    const productData: Omit<Product, 'id'> = {
+    // The product data sent to the backend doesn't need an ID or dataAiHint, backend will generate it.
+    const productData: Omit<Product, 'id' | 'dataAiHint'> = {
       name: data.name,
       price: data.price,
       description: data.description,
@@ -109,7 +109,7 @@ export function ProductSubmissionForm({ onAddProduct }: ProductSubmissionFormPro
                 <FormControl>
                   <Input placeholder="https://example.com/image.jpg" {...field} />
                 </FormControl>
-                <FormDescription>Enter the URL of the product image.</FormDescription>
+                <FormDescription>Enter the URL of the product image. If left blank, a placeholder will be used.</FormDescription>
                 <FormMessage />
               </FormItem>
             )}

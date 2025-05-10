@@ -24,7 +24,8 @@ export default function HomePage() {
     try {
       const response = await fetch(`${API_URL}/products`);
       if (!response.ok) {
-        throw new Error(`Failed to fetch products: ${response.status} ${response.statusText}`);
+        const errorBody = await response.text();
+        throw new Error(`Failed to fetch products: ${response.status} ${response.statusText}. Server responded with: ${errorBody}`);
       }
       const data: Product[] = await response.json();
       setProducts(data);
@@ -33,7 +34,7 @@ export default function HomePage() {
       if (err instanceof Error) {
         detailedMessage = err.message;
         if (err.message.toLowerCase().includes('failed to fetch')) {
-          detailedMessage = `Could not connect to the product server at ${API_URL}/products. Please ensure the backend server is running and accessible. Original error: ${err.message}`;
+          detailedMessage = `Could not connect to the product server at ${API_URL}. Please ensure the backend server (Express.js) is running (e.g., using 'npm run server:dev') and accessible. Original error: ${err.message}`;
         }
       }
       setError(detailedMessage);
@@ -41,8 +42,9 @@ export default function HomePage() {
         variant: "destructive",
         title: "Error Fetching Products",
         description: detailedMessage,
+        duration: 10000, // Keep toast longer for error messages
       });
-      setProducts([]);
+      setProducts([]); // Clear products on error
     } finally {
       setIsLoading(false);
     }
@@ -52,7 +54,7 @@ export default function HomePage() {
     fetchProducts();
   }, [fetchProducts]);
 
-  const handleAddProduct = async (productData: Omit<Product, 'id'>) => {
+  const handleAddProduct = async (productData: Omit<Product, 'id' | 'dataAiHint'>) => {
     try {
       const response = await fetch(`${API_URL}/products`, {
         method: 'POST',
@@ -63,8 +65,8 @@ export default function HomePage() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: `Failed to add product: ${response.status} ${response.statusText}` }));
-        throw new Error(errorData.message || `Failed to add product: ${response.status} ${response.statusText}`);
+        const errorData = await response.json().catch(() => ({ message: `Failed to add product: ${response.status} ${response.statusText}.` }));
+        throw new Error(errorData.message || `Failed to add product: ${response.status} ${response.statusText}.`);
       }
 
       const newProduct: Product = await response.json();
@@ -80,14 +82,15 @@ export default function HomePage() {
        if (err instanceof Error) {
         detailedMessage = err.message;
         if (err.message.toLowerCase().includes('failed to fetch')) {
-          detailedMessage = `Could not connect to the product server to add product. Please ensure the backend server is running and accessible. Original error: ${err.message}`;
+          detailedMessage = `Could not connect to the product server at ${API_URL} to add product. Please ensure the backend server (Express.js) is running (e.g., using 'npm run server:dev') and accessible. Original error: ${err.message}`;
         }
       }
-      setError(detailedMessage);
+      setError(detailedMessage); // Set error state to display in the UI
       toast({
         variant: "destructive",
         title: "Error Adding Product",
         description: detailedMessage,
+        duration: 10000, // Keep toast longer for error messages
       });
       return false; // Indicate failure
     }
