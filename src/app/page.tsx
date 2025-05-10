@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -49,7 +48,7 @@ export default function HomePage() {
         variant: "destructive",
         title: "Error Fetching Products",
         description: detailedMessage,
-        duration: 15000, 
+        duration: 7000, 
       });
       setProducts([]); 
     } finally {
@@ -103,7 +102,7 @@ export default function HomePage() {
         variant: "destructive",
         title: "Error Adding Product",
         description: detailedMessage,
-        duration: 15000, 
+        duration: 7000, 
       });
       return false; 
     }
@@ -111,8 +110,9 @@ export default function HomePage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8 px-4 flex justify-center items-center min-h-[calc(100vh-4rem)]">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      <div className="container mx-auto py-8 px-4 flex flex-col justify-center items-center min-h-[calc(100vh-10rem)]"> {/* Adjusted min-height */}
+        <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+        <p className="text-lg text-muted-foreground">Loading products...</p>
       </div>
     );
   }
@@ -147,4 +147,3 @@ export default function HomePage() {
     </div>
   );
 }
-

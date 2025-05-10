@@ -23,15 +23,17 @@ export function ProductList({ allProducts }: ProductListProps) {
     // If search term is cleared, show all products
     if (!searchTerm.trim()) {
       setDisplayedProducts(allProducts);
+      setSearchError(null); // Clear search error when search term is cleared
     }
   }, [searchTerm, allProducts]);
   
   // Update displayed products when allProducts prop changes (e.g., new product added)
+  // and no active search is being performed or term is empty.
   useEffect(() => {
-    if (!searchTerm.trim()) { // Only update if not actively filtering
+    if (!searchTerm.trim()) { 
         setDisplayedProducts(allProducts);
     }
-  }, [allProducts]);
+  }, [allProducts, searchTerm]);
 
 
   const handleSearch = async () => {
@@ -52,8 +54,8 @@ export function ProductList({ allProducts }: ProductListProps) {
 
     } catch (error) {
       console.error('Smart search failed:', error);
-      setSearchError('Smart search failed. Please try again.');
-      // Fallback to simple text search or show all products
+      setSearchError('Smart search failed. Displaying results based on basic keyword match.');
+      // Fallback to simple text search
       const simpleFiltered = allProducts.filter(p => 
         p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.description.toLowerCase().includes(searchTerm.toLowerCase())
@@ -66,7 +68,7 @@ export function ProductList({ allProducts }: ProductListProps) {
 
   return (
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
-      <div className="mb-8 flex flex-col sm:flex-row gap-4 items-center">
+      <div className="mb-6 flex flex-col sm:flex-row gap-4 items-center">
         <Input
           type="text"
           placeholder="Smart search for products..."
@@ -85,20 +87,27 @@ export function ProductList({ allProducts }: ProductListProps) {
         </Button>
       </div>
 
-      {searchError && (
+      {isSearching && (
+        <div className="text-center py-4 text-muted-foreground flex items-center justify-center">
+          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+          <span>Searching for products...</span>
+        </div>
+      )}
+
+      {searchError && !isSearching && (
          <Alert variant="destructive" className="mb-6">
            <Info className="h-4 w-4" />
-           <AlertTitle>Search Error</AlertTitle>
-           <AlertDescription>{searchError} Showing results for basic keyword match.</AlertDescription>
+           <AlertTitle>Search Information</AlertTitle>
+           <AlertDescription>{searchError}</AlertDescription>
          </Alert>
       )}
 
       {displayedProducts.length === 0 && !isSearching && (
-        <Alert className="mb-6 bg-secondary/50">
-          <Info className="h-4 w-4" />
+        <Alert className="mb-6 bg-card border-border shadow-sm">
+          <Info className="h-4 w-4 text-primary" />
           <AlertTitle>No Products Found</AlertTitle>
           <AlertDescription>
-            {searchTerm.trim() ? "No products match your search criteria." : "No products have been added yet. Submit a product using the 'Product Submission' tab."}
+            {searchTerm.trim() ? "No products match your search criteria. Try a different term or clear the search." : "No products have been added yet. Submit a product using the 'Product Submission' tab."}
           </AlertDescription>
         </Alert>
       )}
