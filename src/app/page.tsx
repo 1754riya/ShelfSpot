@@ -12,7 +12,7 @@ const initialProducts: Product[] = [
   { id: '2', name: 'Modern Oak Dining Table', price: 450.00, description: 'Solid oak dining table with a minimalist design, seats 6.', imageUrl: 'https://picsum.photos/seed/table/400/300', "data-ai-hint": "dining table" },
   { id: '3', name: 'Gaming Desktop PC - Ryzen 7', price: 1200.00, description: 'Powerful gaming desktop with AMD Ryzen 7, RTX 4070, 32GB RAM.', imageUrl: 'https://picsum.photos/seed/desktop/400/300', "data-ai-hint": "gaming pc" },
   { id: '4', name: 'Latest Smartphone Pro Max', price: 999.00, description: 'Flagship smartphone with a stunning display and pro-grade camera system.', imageUrl: 'https://picsum.photos/seed/phone/400/300', "data-ai-hint": "smartphone" },
-  { id: '5', name: 'Adjustable Standing Desk', price: 399.50, description: 'Electric height-adjustable standing desk for a healthier workspace.', imageUrl: 'https://picsum.photos/seed/standingdesk/400/300', "data-ai-hint": "standing desk" },
+  { id: '5', name: 'Adjustable Standing Desk', price: 399.50, description: 'Electric height-adjustable standing desk for a healthier workspace.', imageUrl: 'https://picsum.photos/seed/desklamp/400/300', "data-ai-hint": "desk lamp" },
 ];
 
 
