@@ -4,5 +4,5 @@ export interface Product {
   price: number;
   description: string;
   imageUrl?: string;
-  "data-ai-hint"?: string; // Make data-ai-hint optional
+  dataAiHint?: string; // Changed from "data-ai-hint" to dataAiHint for consistency
 }
