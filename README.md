@@ -29,7 +29,7 @@ This is a Next.js and Express.js application for a mini e-commerce platform.
     ```
 
 3.  **Configure Backend Environment Variables:**
-    *   Rename or copy the `.env.example` file to `.env` if it exists, or create a new `.env` file in the project root.
+    *   create a new `.env` file in the project root.
     *   Update the `.env` file with your PostgreSQL database connection details:
         ```env
         PGUSER=your_postgres_user
