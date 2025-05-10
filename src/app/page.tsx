@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -18,6 +19,15 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
+  const parseProductPrice = (product: any): Product => {
+    return {
+      ...product,
+      price: typeof product.price === 'string' ? parseFloat(product.price) : product.price,
+      // Ensure dataAiHint is correctly named if it comes as "data_ai_hint" from backend
+      dataAiHint: product.dataAiHint || product.data_ai_hint 
+    };
+  };
+
   const fetchProducts = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -32,8 +42,9 @@ export default function HomePage() {
         }
         throw new Error(`Failed to fetch products: ${response.status} ${response.statusText}. Server responded with: ${errorBody}`);
       }
-      const data: Product[] = await response.json();
-      setProducts(data);
+      const data: any[] = await response.json();
+      const productsWithNumericPrice = data.map(parseProductPrice);
+      setProducts(productsWithNumericPrice);
     } catch (err) {
       let detailedMessage = "An unknown error occurred while fetching products.";
       if (err instanceof Error) {
@@ -60,14 +71,21 @@ export default function HomePage() {
     fetchProducts();
   }, [fetchProducts]);
 
-  const handleAddProduct = async (productData: Omit<Product, 'id' | 'dataAiHint'>) => {
+  const handleAddProduct = async (productData: Omit<Product, 'id'>) => { // dataAiHint is now part of ProductData Omit
     try {
+      // The backend expects "data-ai-hint", so we ensure it's passed that way
+      const payload = {
+        ...productData,
+        "data-ai-hint": productData.dataAiHint 
+      };
+      delete (payload as any).dataAiHint; // remove the camelCase version if it exists on payload
+
       const response = await fetch(`${API_URL}/products`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(productData),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -80,7 +98,9 @@ export default function HomePage() {
         throw new Error( typeof errorBody === 'string' ? errorBody : (errorBody as {message: string})?.message || `Failed to add product: ${response.status} ${response.statusText}.`);
       }
 
-      const newProduct: Product = await response.json();
+      const newProductResponse: any = await response.json();
+      const newProduct: Product = parseProductPrice(newProductResponse);
+      
       setProducts((prevProducts) => [newProduct, ...prevProducts]);
 
       toast({
@@ -120,19 +140,24 @@ export default function HomePage() {
   return (
     <div className="container mx-auto py-4 sm:py-8 px-2 sm:px-4">
       {error && (
-        <Alert variant="destructive" className="mb-6">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Application Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+        <Alert variant="destructive" className="mb-6 shadow-md rounded-lg">
+          <AlertTriangle className="h-5 w-5" />
+          <AlertTitle className="font-semibold">Application Error</AlertTitle>
+          <AlertDescription className="text-sm">{error}
+          <p className="mt-2 text-xs">
+              Please ensure your backend server is running (<code>npm run server:dev</code>) and connected to the PostgreSQL database.
+              Check the <a href="https://github.com/GoogleCloudPlatform/idx-e2e-shelfspot/blob/main/README.md#troubleshooting-error-fetching-products--failed-to-fetch--networkerror" target="_blank" rel="noopener noreferrer" className="underline hover:text-destructive-foreground/80">Troubleshooting Guide</a> for more help.
+            </p>
+          </AlertDescription>
         </Alert>
       )}
       <Tabs defaultValue="submission" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-6 shadow-sm">
-          <TabsTrigger value="submission" className="py-3 text-sm sm:text-base">
+        <TabsList className="grid w-full grid-cols-2 mb-6 shadow-md rounded-lg">
+          <TabsTrigger value="submission" className="py-3 text-sm sm:text-base rounded-l-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             <PackagePlus className="mr-2 h-5 w-5" />
             Product Submission
           </TabsTrigger>
-          <TabsTrigger value="products" className="py-3 text-sm sm:text-base">
+          <TabsTrigger value="products" className="py-3 text-sm sm:text-base rounded-r-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             <List className="mr-2 h-5 w-5" />
             My Products
           </TabsTrigger>
