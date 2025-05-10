@@ -8,9 +8,11 @@ import { ProductList } from '@/components/app/product-list';
 import { PackagePlus, List } from 'lucide-react';
 
 const initialProducts: Product[] = [
-  { id: '1', name: 'Modern Desk Lamp', price: 49.99, description: 'A sleek and stylish LED desk lamp with adjustable brightness.', imageUrl: 'https://picsum.photos/seed/lamp/400/300' , "data-ai-hint": "desk lamp"},
-  { id: '2', name: 'Wireless Ergonomic Mouse', price: 35.50, description: 'Comfortable wireless mouse designed for long hours of use.', imageUrl: 'https://picsum.photos/seed/mouse/400/300', "data-ai-hint": "computer mouse" },
-  { id: '3', name: 'Bookshelf Speakers (Pair)', price: 129.00, description: 'High-fidelity bookshelf speakers for immersive audio.', imageUrl: 'https://picsum.photos/seed/speakers/400/300', "data-ai-hint": "bookshelf speakers" },
+  { id: '1', name: 'Ergonomic Office Chair', price: 299.99, description: 'High-back ergonomic chair with lumbar support and adjustable armrests.', imageUrl: 'https://picsum.photos/seed/chair/400/300' , "data-ai-hint": "office chair"},
+  { id: '2', name: 'Modern Oak Dining Table', price: 450.00, description: 'Solid oak dining table with a minimalist design, seats 6.', imageUrl: 'https://picsum.photos/seed/table/400/300', "data-ai-hint": "dining table" },
+  { id: '3', name: 'Gaming Desktop PC - Ryzen 7', price: 1200.00, description: 'Powerful gaming desktop with AMD Ryzen 7, RTX 4070, 32GB RAM.', imageUrl: 'https://picsum.photos/seed/desktop/400/300', "data-ai-hint": "gaming pc" },
+  { id: '4', name: 'Latest Smartphone Pro Max', price: 999.00, description: 'Flagship smartphone with a stunning display and pro-grade camera system.', imageUrl: 'https://picsum.photos/seed/phone/400/300', "data-ai-hint": "smartphone" },
+  { id: '5', name: 'Adjustable Standing Desk', price: 399.50, description: 'Electric height-adjustable standing desk for a healthier workspace.', imageUrl: 'https://picsum.photos/seed/standingdesk/400/300', "data-ai-hint": "standing desk" },
 ];
 
 
@@ -70,3 +72,4 @@ export default function HomePage() {
     </div>
   );
 }
+
