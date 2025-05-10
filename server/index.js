@@ -89,8 +89,9 @@ app.post('/api/products', async (req, res) => {
   }
 
   const newProductId = crypto.randomUUID();
-  const finalImageUrl = imageUrl || `https://picsum.photos/seed/${newProductId}/400/300`;
   const finalDataAiHint = dataAiHintValue || name.toLowerCase().split(" ").slice(0,2).join(" ");
+  const finalImageUrl = imageUrl || `https://picsum.photos/seed/${encodeURIComponent(finalDataAiHint)}/400/300`;
+
 
   const queryText = 'INSERT INTO products(id, name, price, description, image_url, data_ai_hint) VALUES($1, $2, $3, $4, $5, $6) RETURNING id, name, price, description, image_url AS "imageUrl", data_ai_hint AS "dataAiHint", created_at';
   const values = [newProductId, name, price, description, finalImageUrl, finalDataAiHint];
@@ -139,3 +140,4 @@ process.on('SIGINT', async () => {
   console.log('✅ PostgreSQL pool closed.');
   process.exit(0);
 });
+
