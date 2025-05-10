@@ -1,4 +1,4 @@
-# Firebase Studio - ShelfSpot E-Commerce Platform
+# ShelfSpot E-Commerce Platform
 
 This is a Next.js and Express.js application for a mini e-commerce platform.
 
