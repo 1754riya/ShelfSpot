@@ -19,13 +19,13 @@ const productFormSchema = z.object({
   price: z.coerce.number().positive({ message: 'Price must be a positive number.' }),
   description: z.string().min(10, { message: 'Description must be at least 10 characters.' }).max(5000, { message: 'Description must be at most 5000 characters.'}),
   imageUrl: z.string().url({ message: 'Please enter a valid URL.' }).optional().or(z.literal('')),
-  dataAiHint: z.string().max(50, {message: 'AI hint must be at most 50 characters (e.g., "modern lamp").'}).optional().or(z.literal('')),
+  // dataAiHint field removed from schema
 });
 
 type ProductFormValues = z.infer<typeof productFormSchema>;
 
 interface ProductSubmissionFormProps {
-  onAddProduct: (productData: Omit<Product, 'id'>) => Promise<boolean>;
+  onAddProduct: (productData: Omit<Product, 'id' | 'dataAiHint'> & { dataAiHint?: string }) => Promise<boolean>;
 }
 
 export function ProductSubmissionForm({ onAddProduct }: ProductSubmissionFormProps) {
@@ -39,18 +39,18 @@ export function ProductSubmissionForm({ onAddProduct }: ProductSubmissionFormPro
       price: 0,
       description: '',
       imageUrl: '',
-      dataAiHint: '',
+      // dataAiHint default removed
     },
   });
 
   async function onSubmit(data: ProductFormValues) {
     setIsSubmitting(true);
-    const productData: Omit<Product, 'id'> = {
+    const productData: Omit<Product, 'id' | 'dataAiHint'> & { dataAiHint?: string } = {
       name: data.name,
       price: data.price,
       description: data.description,
       imageUrl: data.imageUrl || undefined,
-      dataAiHint: data.dataAiHint || undefined,
+      // dataAiHint removed from productData construction from form values
     };
     
     const success = await onAddProduct(productData);
@@ -134,20 +134,7 @@ export function ProductSubmissionForm({ onAddProduct }: ProductSubmissionFormPro
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="dataAiHint"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-lg font-semibold text-foreground/85">Placeholder Image Keywords (Optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., desk lamp" {...field} className="text-base py-3 px-4 rounded-lg shadow-sm border-border/70 focus:border-primary transition-colors"/>
-                  </FormControl>
-                  <FormDescription className="text-sm text-muted-foreground/80">Max 2 words for placeholder image generation if no Image URL is provided (e.g., "modern chair").</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* FormField for dataAiHint removed */}
             <Button type="submit" className="w-full sm:w-auto py-3.5 px-8 text-lg font-medium rounded-lg shadow-md hover:bg-primary/90 transition-all duration-150 ease-in-out bg-primary text-primary-foreground focus:ring-2 focus:ring-primary/50 focus:ring-offset-2" disabled={isSubmitting}>
               {isSubmitting ? (
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />

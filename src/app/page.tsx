@@ -23,7 +23,7 @@ export default function HomePage() {
     const price = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
     return {
       ...product,
-      price: typeof price === 'number' && !isNaN(price) ? price : 0, // Ensure price is a valid number, default to 0 if not
+      price: typeof price === 'number' && !isNaN(price) ? price : 0,
       dataAiHint: product.dataAiHint || product.data_ai_hint 
     };
   };
@@ -71,13 +71,20 @@ export default function HomePage() {
     fetchProducts();
   }, [fetchProducts]);
 
-  const handleAddProduct = async (productData: Omit<Product, 'id'>) => { 
+  const handleAddProduct = async (productData: Omit<Product, 'id' | 'dataAiHint'> & { dataAiHint?: string }) => { 
     try {
+      // The backend will generate dataAiHint if it's not provided.
+      // We no longer expect dataAiHint from the form, so no need to explicitly map it for the payload.
       const payload = {
         ...productData,
-        "data-ai-hint": productData.dataAiHint 
       };
-      delete (payload as any).dataAiHint; 
+      // Ensure dataAiHint (if it somehow existed on productData) is not sent,
+      // as backend expects "data-ai-hint" or generates its own.
+      // This is more of a safeguard now.
+      if ('dataAiHint' in payload) {
+        delete (payload as any).dataAiHint;
+      }
+
 
       const response = await fetch(`${API_URL}/products`, {
         method: 'POST',
@@ -104,7 +111,7 @@ export default function HomePage() {
 
       toast({
         title: 'Product Submitted!',
-        description: `${productData.name} has been added to your products.`,
+        description: `${newProduct.name} has been added to your products.`,
       });
       return true; 
     } catch (err) {
@@ -129,7 +136,7 @@ export default function HomePage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-10 px-4 flex flex-col justify-center items-center min-h-[calc(100vh-12rem)]"> {/* Adjusted min-height and padding */}
+      <div className="container mx-auto py-10 px-4 flex flex-col justify-center items-center min-h-[calc(100vh-12rem)]">
         <Loader2 className="h-16 w-16 animate-spin text-primary mb-6" />
         <p className="text-xl text-muted-foreground">Loading Products...</p>
       </div>
@@ -137,7 +144,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="container mx-auto py-8 sm:py-12 px-4"> {/* Adjusted padding */}
+    <div className="container mx-auto py-8 sm:py-12 px-4">
       <div className="flex items-center justify-center sm:justify-start mb-10">
         <LayoutDashboard className="h-10 w-10 mr-3 text-primary" />
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
@@ -146,11 +153,11 @@ export default function HomePage() {
       </div>
 
       {error && (
-        <Alert variant="destructive" className="mb-8 shadow-xl rounded-xl p-6"> {/* Enhanced shadow and padding */}
-          <AlertTriangle className="h-6 w-6" /> {/* Slightly larger icon */}
-          <AlertTitle className="font-bold text-lg">Application Error</AlertTitle> {/* Bolder and larger title */}
-          <AlertDescription className="text-base mt-1">{error} {/* Slightly larger description */}
-          <p className="mt-3 text-sm text-muted-foreground/90"> {/* Adjusted styling for readability */}
+        <Alert variant="destructive" className="mb-8 shadow-xl rounded-xl p-6">
+          <AlertTriangle className="h-6 w-6" />
+          <AlertTitle className="font-bold text-lg">Application Error</AlertTitle>
+          <AlertDescription className="text-base mt-1">{error}
+          <p className="mt-3 text-sm text-muted-foreground/90">
               Please ensure your backend server is running (<code>npm run server:dev</code>) and connected to the PostgreSQL database.
               Check the <a href="https://github.com/GoogleCloudPlatform/idx-e2e-shelfspot/blob/main/README.md#troubleshooting-error-fetching-products--failed-to-fetch--networkerror" target="_blank" rel="noopener noreferrer" className="underline font-medium hover:text-destructive-foreground">Troubleshooting Guide</a> for more help.
             </p>
@@ -158,7 +165,7 @@ export default function HomePage() {
         </Alert>
       )}
       <Tabs defaultValue="submission" className="w-full">
-        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 mb-8 shadow-lg rounded-xl h-auto p-1.5 bg-muted"> {/* Enhanced TabsList styling */}
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 mb-8 shadow-lg rounded-xl h-auto p-1.5 bg-muted">
           <TabsTrigger value="submission" className="py-3 text-sm sm:text-base font-medium rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-150 ease-in-out">
             <PackagePlus className="mr-2 h-5 w-5" />
             Add New Product
@@ -178,5 +185,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-    
