@@ -19,13 +19,12 @@ const productFormSchema = z.object({
   price: z.coerce.number().positive({ message: 'Price must be a positive number.' }),
   description: z.string().min(10, { message: 'Description must be at least 10 characters.' }).max(5000, { message: 'Description must be at most 5000 characters.'}),
   imageUrl: z.string().url({ message: 'Please enter a valid URL.' }).optional().or(z.literal('')),
-  // dataAiHint field removed from schema
 });
 
 type ProductFormValues = z.infer<typeof productFormSchema>;
 
 interface ProductSubmissionFormProps {
-  onAddProduct: (productData: Omit<Product, 'id' | 'dataAiHint'> & { dataAiHint?: string }) => Promise<boolean>;
+  onAddProduct: (productData: Omit<Product, 'id' | 'dataAiHint'>) => Promise<boolean>;
 }
 
 export function ProductSubmissionForm({ onAddProduct }: ProductSubmissionFormProps) {
@@ -39,38 +38,40 @@ export function ProductSubmissionForm({ onAddProduct }: ProductSubmissionFormPro
       price: 0,
       description: '',
       imageUrl: '',
-      // dataAiHint default removed
     },
   });
 
   async function onSubmit(data: ProductFormValues) {
     setIsSubmitting(true);
-    const productData: Omit<Product, 'id' | 'dataAiHint'> & { dataAiHint?: string } = {
+    const productData: Omit<Product, 'id' | 'dataAiHint'> = {
       name: data.name,
       price: data.price,
       description: data.description,
       imageUrl: data.imageUrl || undefined,
-      // dataAiHint removed from productData construction from form values
     };
     
     const success = await onAddProduct(productData);
     
     if (success) {
       form.reset(); 
-      toast({
-        title: 'Product Submitted!',
-        description: `${data.name} has been added to your products.`,
-      });
+      // The toast is already handled in the page.tsx for success/failure.
+      // No need to call it here again if onAddProduct returns a boolean
+      // that the parent component uses for its own toast.
+      // If you want specific toast here:
+      // toast({
+      //   title: 'Product Submitted!',
+      //   description: `${data.name} has been added.`,
+      // });
     }
     setIsSubmitting(false);
   }
 
 
   return (
-    <Card className="max-w-3xl mx-auto shadow-xl rounded-xl bg-card/90 backdrop-blur-sm border-border/60">
+    <Card className="max-w-3xl mx-auto shadow-xl rounded-xl bg-card/90 backdrop-blur-sm border-border/60 hover:shadow-2xl transition-shadow duration-300">
       <CardHeader className="p-6 sm:p-8">
-        <CardTitle className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground/90">Add a New Product</CardTitle>
-        <CardDescription className="text-base text-muted-foreground mt-1 sm:mt-2">
+        <CardTitle className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground/90 group-hover:text-primary transition-colors duration-200">Add a New Product</CardTitle>
+        <CardDescription className="text-base text-muted-foreground mt-1 sm:mt-2 group-hover:text-foreground/80 transition-colors duration-200">
           Fill in the details below to add your product to the catalog.
         </CardDescription>
       </CardHeader>
@@ -82,9 +83,9 @@ export function ProductSubmissionForm({ onAddProduct }: ProductSubmissionFormPro
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-lg font-semibold text-foreground/85">Product Name</FormLabel>
+                  <FormLabel className="text-lg font-semibold text-foreground/85 hover:text-primary transition-colors duration-200">Product Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Ergonomic Office Chair" {...field} className="text-base py-3 px-4 rounded-lg shadow-sm border-border/70 focus:border-primary transition-colors"/>
+                    <Input placeholder="e.g., Ergonomic Office Chair" {...field} className="text-base py-3 px-4 rounded-lg shadow-sm border-border/70 focus:border-primary transition-colors hover:border-primary/70"/>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -95,11 +96,11 @@ export function ProductSubmissionForm({ onAddProduct }: ProductSubmissionFormPro
               name="price"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-lg font-semibold text-foreground/85">Price (USD)</FormLabel>
+                  <FormLabel className="text-lg font-semibold text-foreground/85 hover:text-primary transition-colors duration-200">Price (USD)</FormLabel>
                   <FormControl>
                     <Input type="number" placeholder="e.g., 299.99" {...field} step="0.01" 
                      onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
-                     className="text-base py-3 px-4 rounded-lg shadow-sm border-border/70 focus:border-primary transition-colors"
+                     className="text-base py-3 px-4 rounded-lg shadow-sm border-border/70 focus:border-primary transition-colors hover:border-primary/70"
                     />
                   </FormControl>
                   <FormMessage />
@@ -112,9 +113,9 @@ export function ProductSubmissionForm({ onAddProduct }: ProductSubmissionFormPro
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-lg font-semibold text-foreground/85">Description</FormLabel>
+                  <FormLabel className="text-lg font-semibold text-foreground/85 hover:text-primary transition-colors duration-200">Description</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Describe your product in detail..." {...field} rows={6} className="text-base py-3 px-4 rounded-lg shadow-sm min-h-[120px] border-border/70 focus:border-primary transition-colors"/>
+                    <Textarea placeholder="Describe your product in detail..." {...field} rows={6} className="text-base py-3 px-4 rounded-lg shadow-sm min-h-[120px] border-border/70 focus:border-primary transition-colors hover:border-primary/70"/>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -125,17 +126,16 @@ export function ProductSubmissionForm({ onAddProduct }: ProductSubmissionFormPro
               name="imageUrl"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-lg font-semibold text-foreground/85">Image URL (Optional)</FormLabel>
+                  <FormLabel className="text-lg font-semibold text-foreground/85 hover:text-primary transition-colors duration-200">Image URL (Optional)</FormLabel>
                   <FormControl>
-                    <Input placeholder="https://example.com/your-product-image.jpg" {...field} className="text-base py-3 px-4 rounded-lg shadow-sm border-border/70 focus:border-primary transition-colors"/>
+                    <Input placeholder="https://example.com/your-product-image.jpg" {...field} className="text-base py-3 px-4 rounded-lg shadow-sm border-border/70 focus:border-primary transition-colors hover:border-primary/70"/>
                   </FormControl>
-                  <FormDescription className="text-sm text-muted-foreground/80">Enter the full URL of the product image. If left blank, a placeholder will be used.</FormDescription>
+                  <FormDescription className="text-sm text-muted-foreground/80 group-hover:text-foreground/70 transition-colors duration-200">Enter the full URL of the product image. If left blank, a placeholder will be used.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            {/* FormField for dataAiHint removed */}
-            <Button type="submit" className="w-full sm:w-auto py-3.5 px-8 text-lg font-medium rounded-lg shadow-md hover:bg-primary/90 transition-all duration-150 ease-in-out bg-primary text-primary-foreground focus:ring-2 focus:ring-primary/50 focus:ring-offset-2" disabled={isSubmitting}>
+            <Button type="submit" className="w-full sm:w-auto py-3.5 px-8 text-lg font-medium rounded-lg shadow-md hover:shadow-primary/30 focus:shadow-primary/30 hover:bg-primary/90 transition-all duration-200 ease-in-out bg-primary text-primary-foreground focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 transform hover:scale-[1.02] active:scale-[0.98]" disabled={isSubmitting}>
               {isSubmitting ? (
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
               ) : (
@@ -149,3 +149,4 @@ export function ProductSubmissionForm({ onAddProduct }: ProductSubmissionFormPro
     </Card>
   );
 }
+
