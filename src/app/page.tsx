@@ -23,8 +23,9 @@ export default function HomePage() {
     const price = typeof product.price === 'string' ? parseFloat(product.price) : product.price;
     return {
       ...product,
+      id: product.id || '', // Ensure id is always a string
       price: typeof price === 'number' && !isNaN(price) ? price : 0,
-      dataAiHint: product.dataAiHint || product.data_ai_hint 
+      dataAiHint: product.dataAiHint || product.data_ai_hint || product.name?.toLowerCase().split(" ").slice(0,2).join(" ") || 'product'
     };
   };
 
@@ -131,6 +132,53 @@ export default function HomePage() {
     }
   };
 
+  const handleDeleteProduct = async (productId: string) => {
+    try {
+      const response = await fetch(`${API_URL}/products/${productId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        let errorBodyText = `Server response: ${response.status} ${response.statusText}`;
+        try {
+            const errorBodyJson = await response.json();
+            errorBodyText = errorBodyJson.message || JSON.stringify(errorBodyJson);
+        } catch (e) {
+            try {
+                errorBodyText = await response.text();
+            } catch (e) {
+              //
+            }
+        }
+        throw new Error(`Failed to delete product. ${errorBodyText}`);
+      }
+
+      setProducts((prevProducts) => prevProducts.filter((product) => product.id !== productId));
+      toast({
+        title: 'Product Deleted',
+        description: 'The product has been successfully removed.',
+      });
+      return true;
+    } catch (err) {
+      let detailedMessage = "An unknown error occurred while deleting product.";
+      if (err instanceof Error) {
+        detailedMessage = err.message;
+         if (err.message.toLowerCase().includes('failed to fetch') || err.constructor.name === 'TypeError') {
+          detailedMessage = `NetworkError: Could not connect to the product server at ${API_URL} to delete product. Please ensure the backend server (Express.js) is running. Original error: ${err.message}`;
+        }
+      }
+      console.error("Delete Product Error:", detailedMessage, err);
+      toast({
+        variant: "destructive",
+        title: "Error Deleting Product",
+        description: detailedMessage,
+        duration: 7000,
+      });
+      return false;
+    }
+  };
+
+
   if (isLoading) {
     return (
       <div className="container mx-auto py-10 px-4 flex flex-col justify-center items-center min-h-[calc(100vh-12rem)]">
@@ -149,7 +197,7 @@ export default function HomePage() {
         </h1>
       </div>
 
-      {error && (
+      {error && !products.length && ( // Only show main error if no products are loaded
         <Alert variant="destructive" className="mb-8 shadow-xl rounded-xl p-6 border-destructive/70 bg-destructive/5 hover:shadow-destructive/20 transition-shadow duration-300">
           <AlertTriangle className="h-6 w-6 text-destructive" />
           <AlertTitle className="font-bold text-lg text-destructive">Application Error</AlertTitle>
@@ -163,11 +211,11 @@ export default function HomePage() {
       )}
       <Tabs defaultValue="submission" className="w-full">
         <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 mb-8 shadow-lg rounded-xl h-auto p-1.5 bg-muted/70 backdrop-blur-sm border border-border/50">
-          <TabsTrigger value="submission" className="py-3 text-sm sm:text-base font-medium rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200 ease-in-out flex items-center justify-center gap-2 hover:bg-primary/10 data-[state=inactive]:text-muted-foreground">
+          <TabsTrigger value="submission" className="py-3 text-sm sm:text-base font-medium rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200 ease-in-out flex items-center justify-center gap-2 hover:bg-primary/10 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-primary/80">
             <PackagePlus className="h-5 w-5" />
             Product Submission
           </TabsTrigger>
-          <TabsTrigger value="products" className="py-3 text-sm sm:text-base font-medium rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200 ease-in-out flex items-center justify-center gap-2 hover:bg-primary/10 data-[state=inactive]:text-muted-foreground">
+          <TabsTrigger value="products" className="py-3 text-sm sm:text-base font-medium rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200 ease-in-out flex items-center justify-center gap-2 hover:bg-primary/10 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-primary/80">
             <List className="mr-2 h-5 w-5" />
             My Products
           </TabsTrigger>
@@ -176,7 +224,7 @@ export default function HomePage() {
           <ProductSubmissionForm onAddProduct={handleAddProduct} />
         </TabsContent>
         <TabsContent value="products">
-          <ProductList allProducts={products} />
+          <ProductList allProducts={products} onDeleteProduct={handleDeleteProduct} />
         </TabsContent>
       </Tabs>
     </div>

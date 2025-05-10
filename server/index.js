@@ -82,19 +82,20 @@ app.get('/api/products', async (req, res) => {
 });
 
 app.post('/api/products', async (req, res) => {
-  const { name, price, description, imageUrl, "data-ai-hint": dataAiHintValue } = req.body;
+  const { name, price, description, imageUrl } = req.body; // Removed data-ai-hint from direct destructuring
 
   if (!name || typeof price !== 'number' || !description) {
     return res.status(400).json({ message: 'Missing required fields: name, price, description' });
   }
 
   const newProductId = crypto.randomUUID();
-  const finalDataAiHint = dataAiHintValue || name.toLowerCase().split(" ").slice(0,2).join(" ");
-  const finalImageUrl = imageUrl || `https://picsum.photos/seed/${encodeURIComponent(finalDataAiHint)}/400/300`;
+  // Generate dataAiHint from the product name if not provided or if it was removed from client-side logic
+  const dataAiHintValue = name.toLowerCase().split(" ").slice(0,2).join(" ");
+  const finalImageUrl = imageUrl || `https://picsum.photos/seed/${encodeURIComponent(dataAiHintValue)}/400/300`;
 
 
   const queryText = 'INSERT INTO products(id, name, price, description, image_url, data_ai_hint) VALUES($1, $2, $3, $4, $5, $6) RETURNING id, name, price, description, image_url AS "imageUrl", data_ai_hint AS "dataAiHint", created_at';
-  const values = [newProductId, name, price, description, finalImageUrl, finalDataAiHint];
+  const values = [newProductId, name, price, description, finalImageUrl, dataAiHintValue];
 
   try {
     const result = await pool.query(queryText, values);
@@ -104,6 +105,32 @@ app.post('/api/products', async (req, res) => {
     res.status(500).json({ message: 'Error adding product to database.' });
   }
 });
+
+app.delete('/api/products/:id', async (req, res) => {
+  const { id } = req.params;
+  if (!id) {
+    return res.status(400).json({ message: 'Product ID is required.' });
+  }
+
+  // Validate if id is a UUID (optional but good practice)
+  const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+  if (!uuidRegex.test(id)) {
+    return res.status(400).json({ message: 'Invalid Product ID format.' });
+  }
+
+  const queryText = 'DELETE FROM products WHERE id = $1 RETURNING id';
+  try {
+    const result = await pool.query(queryText, [id]);
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: 'Product not found.' });
+    }
+    res.status(200).json({ message: 'Product deleted successfully.', id: result.rows[0].id });
+  } catch (err) {
+    console.error('🔴 Error deleting product from database:', err.stack);
+    res.status(500).json({ message: 'Error deleting product from database.' });
+  }
+});
+
 
 // Catch-all for undefined API routes
 app.use('/api/*', (req, res) => {
