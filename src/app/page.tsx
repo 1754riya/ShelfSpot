@@ -194,7 +194,7 @@ export default function HomePage() {
     <div className="container mx-auto py-8 sm:py-12 px-4">
       <div className="flex items-center justify-center sm:justify-start mb-10">
         <LayoutDashboard className="h-12 w-12 mr-4 text-primary" /> {/* Larger icon */}
-        <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent"> {/* Gradient text */}
+        <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-foreground bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent"> {/* Gradient text */}
           Product Dashboard
         </h1>
       </div>
