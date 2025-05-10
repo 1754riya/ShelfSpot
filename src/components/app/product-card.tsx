@@ -33,7 +33,7 @@ export function ProductCard({ product }: ProductCardProps) {
       <CardFooter className="p-4 pt-0">
         <div className="flex items-center text-lg font-semibold text-primary">
           <DollarSign className="mr-1 h-5 w-5" />
-          {product.price.toFixed(2)}
+          {!isNaN(Number(product.price)) ? Number(product.price).toFixed(2) : 'N/A'}
         </div>
       </CardFooter>
     </Card>
