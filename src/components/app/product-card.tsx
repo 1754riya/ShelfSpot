@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Product } from '@/types';
@@ -12,8 +11,10 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  const dataAiHintValue = product.dataAiHint || product.name.split(' ').slice(0, 2).join(' ') || "product image";
-  const imageUrl = product.imageUrl || `https://picsum.photos/seed/${encodeURIComponent(dataAiHintValue)}/600/450`;
+  const derivedHint = product.dataAiHint || product.name.split(' ').slice(0, 2).join(' ') || "product image";
+  const seedValue = derivedHint.toLowerCase();
+  
+  const imageUrl = product.imageUrl || `https://picsum.photos/seed/${encodeURIComponent(seedValue)}/600/450`;
 
   return (
     <Card className="flex flex-col overflow-hidden rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out group hover:scale-[1.03] bg-card/80 backdrop-blur-sm border-border/60 hover:border-primary/50">
@@ -25,10 +26,12 @@ export function ProductCard({ product }: ProductCardProps) {
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className="object-cover rounded-t-xl transition-transform duration-500 group-hover:scale-110 group-hover:rotate-1" // Enhanced hover effect
-            data-ai-hint={dataAiHintValue}
+            data-ai-hint={seedValue} // Use the lowercased seedValue for the data-ai-hint attribute
             onError={(e) => {
-              e.currentTarget.srcset = `https://picsum.photos/seed/fallback${product.id}/600/450`; // Ensure fallback seed is distinct
-              e.currentTarget.src = `https://picsum.photos/seed/fallback${product.id}/600/450`;
+              // Try a slightly different seed for fallback to avoid potential caching of a broken image URL
+              const fallbackSeed = `fallback-${seedValue}-${product.id}`.toLowerCase();
+              e.currentTarget.srcset = `https://picsum.photos/seed/${encodeURIComponent(fallbackSeed)}/600/450`; 
+              e.currentTarget.src = `https://picsum.photos/seed/${encodeURIComponent(fallbackSeed)}/600/450`;
             }}
           />
            {!product.imageUrl && (
